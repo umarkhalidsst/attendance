@@ -1,0 +1,166 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f6f8fb;
+  color: #1d1f25;
+}
+
+header {
+  padding: 24px 16px 16px;
+  text-align: center;
+  background: #1c3d6a;
+  color: white;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+header .subtitle {
+  margin: 8px 0 0;
+  opacity: 0.85;
+}
+
+main {
+  max-width: 960px;
+  margin: 24px auto 48px;
+  padding: 0 16px;
+}
+
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.07);
+  margin-bottom: 24px;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #c8cbd2;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.auth-tab:hover {
+  background: #f4f6fb;
+}
+
+.auth-tab.active {
+  border-color: #2f62d1;
+  background: rgba(47, 98, 209, 0.1);
+}
+
+.auth-panel {
+  padding-top: 8px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+#teacher-management h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.row label {
+  font-weight: 600;
+  display: block;
+}
+
+.row input,
+.row select,
+.row textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #c8cbd2;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.row button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #2f62d1;
+  background: #2f62d1;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.row button:hover {
+  background: #2a55b8;
+}
+
+.primary {
+  background: #0b9b77;
+  border-color: #0b9b77;
+}
+
+.primary:hover {
+  background: #088a6b;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  margin-top: 12px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+table th,
+table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eef0f5;
+}
+
+table th {
+  background: #f3f6ff;
+  font-weight: 700;
+}
+
+button.small {
+  padding: 6px 10px;
+  font-size: 0.95rem;
+}
+
+footer {
+  text-align: center;
+  padding: 16px 12px 24px;
+  font-size: 0.9rem;
+  color: #55606d;
+}
+
+@media (min-width: 720px) {
+  .row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

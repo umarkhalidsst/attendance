@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attendance + WhatsApp Alerts</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Attendance Manager</h1>
+      <p class="subtitle">
+        Load from Excel or Google Sheet, mark absentees, and send WhatsApp alerts.
+      </p>
+    </header>
+
+    <main>
+      <section id="auth-section" class="card">
+        <h2>Sign in</h2>
+        <p class="hint" style="margin: 8px 0 12px; opacity: 0.8;">
+          Choose how you want to sign in. As admin you can approve principals, or principals can request access.
+        </p>
+
+        <div class="auth-tabs" role="tablist">
+          <button class="auth-tab active" data-tab="admin" role="tab" aria-selected="true">Admin</button>
+          <button class="auth-tab" data-tab="principal" role="tab" aria-selected="false">Principal</button>
+        </div>
+
+        <div class="auth-panels">
+          <div class="auth-panel" data-panel="admin" role="tabpanel">
+            <h3>Admin login</h3>
+            <label for="admin-password">Password</label>
+            <input id="admin-password" type="password" placeholder="Admin password" />
+            <button id="admin-login" class="primary">Login as Admin</button>
+          </div>
+
+          <div class="auth-panel hidden" data-panel="principal" role="tabpanel">
+            <div class="row" style="margin-bottom: 16px;">
+              <div>
+                <h3>Principal login</h3>
+                <label for="principal-login-select">Select principal</label>
+                <select id="principal-login-select"></select>
+                <label for="principal-login-password">Password</label>
+                <input id="principal-login-password" type="password" placeholder="Password" />
+                <button id="principal-login" class="primary">Login as Principal</button>
+              </div>
+            </div>
+
+            <div class="row" style="margin-top: 12px;">
+              <div>
+                <h3>Request access</h3>
+                <label for="principal-signup-name">Name</label>
+                <input id="principal-signup-name" placeholder="Your name" />
+                <label for="principal-signup-phone">Phone</label>
+                <input id="principal-signup-phone" placeholder="e.g. 03001234567" />
+                <label for="principal-signup-email">Email</label>
+                <input id="principal-signup-email" placeholder="you@example.com" />
+                <label for="principal-signup-password">Password</label>
+                <input id="principal-signup-password" type="password" placeholder="Choose a password" />
+                <label for="principal-signup-school">School name</label>
+                <input id="principal-signup-school" placeholder="School name" />
+                <button id="principal-signup" class="primary">Request access</button>
+                <p class="hint" style="font-size:0.85rem; margin:6px 0 0; opacity:0.8;">
+                  After approval you can upload the school sheet and manage teachers.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="app" class="hidden">
+        <div class="row" style="justify-content: space-between; align-items: center;">
+          <div>
+            <strong>Signed in as:</strong> <span id="signed-in-user"></span>
+            <span id="signed-in-role"></span>
+          </div>
+          <button id="logout" class="primary">Log out</button>
+        </div>
+
+        <section id="admin-panel" class="card hidden">
+          <h2>Admin: Approve principals</h2>
+          <p class="hint" style="font-size:0.9rem; margin:6px 0 0; opacity:0.8;">
+            Principals must be approved before they can access the app.
+          </p>
+          <div id="pending-principals"></div>
+        </section>
+
+        <section class="card" id="principal-dashboard">
+          <h2>1. Load students (Excel or Google Sheet)</h2>
+          <div class="row">
+            <div class="column">
+              <label for="excel-file">Upload Excel file</label>
+              <input id="excel-file" type="file" accept=".xlsx,.xls" />
+              <p class="hint" style="font-size:0.9rem; margin:6px 0 0; opacity:0.8;">
+                Each sheet should be a class (e.g., 9, 10). Upload the workbook to load students.
+              </p>
+            </div>
+            <div class="column">
+              <label for="google-sheet-url">Google Sheet link</label>
+              <input id="google-sheet-url" placeholder="Paste sheet link (anyone with link can view)" />
+              <button id="load-google-sheet" class="primary">Load Google Sheet</button>
+              <p class="hint" style="font-size:0.9rem; margin:6px 0 0; opacity:0.8;">
+                Paste a public Google Sheet link and load its sheets as classes.
+              </p>
+            </div>
+          </div>
+          <div class="row">
+            <label for="sheet-select">Choose class (sheet)</label>
+            <select id="sheet-select"></select>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>2. Manage teachers</h2>
+          <div class="row" id="teacher-select-row">
+            <label for="teacher-select">Select teacher</label>
+            <select id="teacher-select"></select>
+          </div>
+
+          <div class="row" id="teacher-management">
+            <h3>Add / manage teachers</h3>
+            <label for="teacher-name">Teacher name</label>
+            <input id="teacher-name" placeholder="Teacher name" />
+            <label for="teacher-phone">Teacher phone</label>
+            <input id="teacher-phone" placeholder="e.g. 03001234567" />
+            <label for="teacher-classes">Assigned class(es)</label>
+            <input id="teacher-classes" placeholder="e.g. 9, 10" />
+            <div class="row" style="margin-top: 8px;">
+              <button id="add-teacher" class="primary">Add / Update Teacher</button>
+            </div>
+            <div id="teacher-list" style="margin-top: 16px;"></div>
+            <p class="hint" style="font-size:0.85rem; margin:6px 0 0; opacity:0.8;">
+              As Principal you can add teachers and assign classes. Teachers will only see classes assigned to them.
+            </p>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>3. Attendance & WhatsApp</h2>
+          <p class="hint">
+            Default is <strong>present</strong>. Mark absent to see the WhatsApp button.
+          </p>
+          <div class="table-wrapper">
+            <table id="students-table">
+              <thead>
+                <tr>
+                  <th>Roll #</th>
+                  <th>Name</th>
+                  <th>Father's Name</th>
+                  <th>Phone</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="row">
+            <button id="send-class-message" class="primary">
+              Send message to selected student(s)
+            </button>
+          </div>
+          <div id="message-area" class="card hidden">
+            <h3>Message preview</h3>
+            <p>
+              <strong>Template</strong>
+            </p>
+            <textarea id="message-template" rows="3"></textarea>
+            <p>
+              <button id="copy-template">Copy template</button>
+            </p>
+            <div id="links"></div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        Built for quick attendance + WhatsApp alerts. Phone formats accepted:
+        +923001234567, 03001234567, 3001234567.
+      </p>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
