@@ -1,5 +1,5 @@
-// Cloudflare Worker URL (Replace YOUR_USERNAME with your actual Cloudflare subdomain)
-let API_BASE_URL = "https://attendance-app.umarkhalid.workers.dev";
+// Cloudflare Worker URL (The backend API)
+let API_BASE_URL = "https://attendance-frontend.umarkhalidsst.workers.dev";
 
 // Automatically use local server when running locally (npm start)
 if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
