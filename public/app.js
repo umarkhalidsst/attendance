@@ -1,3 +1,7 @@
+// TODO: Replace this URL with your actual Cloudflare Worker URL
+// Example: "https://attendance-app.yourname.workers.dev"
+const API_BASE_URL = "https://attendance-app.YOUR_USERNAME.workers.dev";
+
 const state = {
   sheets: {},
   activeSheet: null,
@@ -208,6 +212,25 @@ function loadPrincipals() {
 
 function savePrincipals() {
   localStorage.setItem("attendance_principals", JSON.stringify(state.principals));
+}
+
+function loadSheets() {
+  try {
+    const raw = localStorage.getItem("attendance_sheets");
+    if (raw) {
+      state.sheets = JSON.parse(raw);
+    }
+  } catch {
+    state.sheets = {};
+  }
+}
+
+function saveSheets() {
+  try {
+    localStorage.setItem("attendance_sheets", JSON.stringify(state.sheets));
+  } catch (e) {
+    console.warn("Could not save sheets to local storage (likely quota exceeded)");
+  }
 }
 
 function loadSession() {
@@ -504,7 +527,7 @@ async function loadSheetsFromGoogleSheet(rawUrl) {
 
   try {
     setStatus("Loading Google Sheet...");
-    const resp = await fetch(`/api/google-sheet?sheetId=${encodeURIComponent(sheetId)}`);
+    const resp = await fetch(`${API_BASE_URL}/api/google-sheet?sheetId=${encodeURIComponent(sheetId)}`);
     const data = await resp.json();
     if (data.error) throw new Error(data.error);
     setSheets(data.sheets);
@@ -517,6 +540,7 @@ async function loadSheetsFromGoogleSheet(rawUrl) {
 
 function setSheets(sheets) {
   state.sheets = sheets;
+  saveSheets();
   const sheetNames = Object.keys(sheets);
 
   if (!sheetNames.length) {
@@ -730,16 +754,28 @@ function loadSheetsFromExcel(file) {
   const form = new FormData();
   form.append("file", file);
 
-  fetch("/api/upload", {
+  // Use API_BASE_URL if set, otherwise fallback to relative path (local dev)
+  const url = API_BASE_URL ? `${API_BASE_URL}/api/upload` : "/api/upload";
+
+  fetch(url, {
     method: "POST",
     body: form,
   })
-    .then((r) => r.json())
+    .then(async (r) => {
+      if (!r.ok) {
+        const text = await r.text();
+        throw new Error(`Server returned ${r.status}: ${text}`);
+      }
+      const text = await r.text();
+      if (!text) throw new Error("Server returned empty response (Check API URL)");
+      return JSON.parse(text);
+    })
     .then((data) => {
       if (data.error) throw new Error(data.error);
       setSheets(data.sheets);
     })
     .catch((err) => {
+      console.error(err);
       alert("Failed to load Excel: " + err.message);
     });
 }
@@ -931,6 +967,7 @@ function init() {
   loadTeachers();
   loadPrincipals();
   loadSession();
+  loadSheets();
   render();
 }
 
