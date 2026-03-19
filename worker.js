@@ -7,6 +7,9 @@ const app = new Hono();
 // Enable CORS for all routes
 app.use('/*', cors());
 
+// 0. Root Route (To confirm Worker is running)
+app.get('/', (c) => c.text("Attendance API is running! Go to your frontend website to use the app."));
+
 // Helper: Convert Workbook to JSON
 function workbookToJson(workbook) {
   const out = {};
