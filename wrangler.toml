@@ -10,4 +10,4 @@ bucket = "./public"
 
 [[kv_namespaces]]
 binding = "ATTENDANCE_KV"
-id = "PASTE_YOUR_ID_HERE"
+id = "YOUR_COPIED_ID_HERE"
