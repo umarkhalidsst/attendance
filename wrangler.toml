@@ -4,3 +4,10 @@ compatibility_date = "2024-03-20"
 
 [observability]
 enabled = true
+
+[site]
+bucket = "./public"
+
+[[kv_namespaces]]
+binding = "ATTENDANCE_KV"
+id = "PASTE_YOUR_ID_HERE"
