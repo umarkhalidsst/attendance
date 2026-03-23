@@ -1,6 +1,6 @@
 // Cloudflare Worker URL (The backend API)
 let API_BASE_URL = "";
-console.log("App Version: 1.8 - Live Check");
+console.log("App Version: 1.9 - Cross Device Sync");
 
 const state = {
   sheets: {},
@@ -219,6 +219,16 @@ async function loadTeachersFromAPI() {
 
     // Merge or replace local teachers
     state.teachers = data.teachers || [];
+    localStorage.setItem("attendance_teachers", JSON.stringify(state.teachers));
+
+    // Re-link active teacher if page was refreshed
+    if (state.currentUser?.role === 'teacher' && !state.activeTeacher) {
+      state.activeTeacher = state.teachers.find(t => t.name === state.currentUser.name);
+      if (state.activeTeacher) {
+        // Now that we know the teacher, load their sheets
+        loadSheetsFromAPI();
+      }
+    }
     render();
   } catch (err) {
     console.error("Failed to load teachers from API:", err);
@@ -265,7 +275,7 @@ async function loadPrincipalsFromAPI() {
     }
 
     state.principals = data.principals || [];
-    console.log('successfully load data!')
+    localStorage.setItem("attendance_principals", JSON.stringify(state.principals));
     render();
   } catch (err) {
     console.error("Failed to load principals from API:", err);
@@ -322,6 +332,7 @@ async function loadSheetsFromAPI() {
     const data = await resp.json();
 
     state.sheets = data.sheets || {};
+    localStorage.setItem("attendance_sheets", JSON.stringify(state.sheets));
     // Update selection options based on new data
     updateSheetSelectOptions();
     render();
