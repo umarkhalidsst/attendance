@@ -1,5 +1,10 @@
-// API URL is empty because Frontend and Backend are now on the same domain
-let API_BASE_URL = "";
+// Cloudflare Worker URL (The backend API)
+let API_BASE_URL = "https://ams-attendance.umarkhalidsst.workers.dev";
+
+// Automatically use local server when running locally (npm start)
+if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+  API_BASE_URL = "";
+}
 
 const state = {
   sheets: {},
@@ -37,15 +42,10 @@ const elements = {
   googleSheetUrl: document.getElementById("google-sheet-url"),
   loadGoogleSheet: document.getElementById("load-google-sheet"),
 
-  teacherLoginPhone: document.getElementById("teacher-login-phone"),
-  teacherLoginPassword: document.getElementById("teacher-login-password"),
-  teacherLogin: document.getElementById("teacher-login"),
-
   teacherSelectRow: document.getElementById("teacher-select-row"),
   teacherSelect: document.getElementById("teacher-select"),
   teacherManagement: document.getElementById("teacher-management"),
   teacherClasses: document.getElementById("teacher-classes"),
-  teacherPassword: document.getElementById("teacher-password"),
   studentsTable: document.getElementById("students-table"),
   sendClassMessage: document.getElementById("send-class-message"),
   messageArea: document.getElementById("message-area"),
@@ -127,36 +127,9 @@ function formatDateForMessage(date = new Date(), locale = undefined) {
 
   return date.toLocaleDateString(locale, opts);
 }
-
-let statusTimeout;
-function setStatus(text, type = 'info', duration = 3000) {
+function setStatus(text) {
   const el = document.getElementById("status");
-  if (!el) return;
-
-  clearTimeout(statusTimeout);
-  el.classList.remove('hidden', 'bg-blue-100', 'text-blue-700', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
-
-  if (!text) {
-    el.classList.add('hidden');
-    return;
-  }
-
-  let colorClasses = 'bg-blue-100 text-blue-700'; // info
-  if (type === 'success') {
-    colorClasses = 'bg-green-100 text-green-700';
-  } else if (type === 'error') {
-    colorClasses = 'bg-red-100 text-red-700';
-  }
-
-  el.textContent = text;
-  el.classList.add(...colorClasses.split(' '));
-  el.classList.remove('hidden');
-
-  if (duration > 0) {
-    statusTimeout = setTimeout(() => {
-      el.classList.add('hidden');
-    }, duration);
-  }
+  if (el) el.textContent = text;
 }
 
 function getAllowedSheetNames() {
@@ -230,7 +203,6 @@ function loadTeachers() {
 
 function saveTeachers() {
   localStorage.setItem("attendance_teachers", JSON.stringify(state.teachers));
-  saveTeachersToAPI();
 }
 
 function loadPrincipals() {
@@ -244,7 +216,6 @@ function loadPrincipals() {
 
 function savePrincipals() {
   localStorage.setItem("attendance_principals", JSON.stringify(state.principals));
-  savePrincipalsToAPI();
 }
 
 async function loadPrincipalsFromAPI() {
@@ -258,6 +229,7 @@ async function loadPrincipalsFromAPI() {
     }
 
     state.principals = data.principals || [];
+    console.log('successfully load data!')
     render();
   } catch (err) {
     console.error("Failed to load principals from API:", err);
@@ -280,88 +252,6 @@ async function savePrincipalsToAPI() {
   }
 }
 
-async function loadTeachersFromAPI() {
-  try {
-    const resp = await fetch(`${API_BASE_URL}/api/teachers`);
-    const data = await resp.json();
-
-    if (data.error) {
-      console.error("Error loading teachers:", data.error);
-      return;
-    }
-
-    // Merge or replace local teachers
-    state.teachers = data.teachers || [];
-    render();
-  } catch (err) {
-    console.error("Failed to load teachers from API:", err);
-  }
-}
-
-async function saveTeachersToAPI() {
-  try {
-    const resp = await fetch(`${API_BASE_URL}/api/teachers`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ teachers: state.teachers }),
-    });
-
-    if (!resp.ok) {
-      console.error("Failed to save teachers:", resp.status);
-    }
-  } catch (err) {
-    console.error("Failed to save teachers to API:", err);
-  }
-}
-
-async function loadSheetsFromAPI() {
-  try {
-    let principalId = null;
-    if (state.currentUser?.role === 'principal') {
-      principalId = state.currentUser.id;
-    } else if (state.currentUser?.role === 'teacher') {
-      // For teachers, we need to know who their principal is.
-      // We use the activeTeacher object which should have principalId
-      principalId = state.activeTeacher?.principalId;
-    }
-
-    if (!principalId) return; // Can't load sheets if we don't know the principal
-    const resp = await fetch(`${API_BASE_URL}/api/sheets?principalId=${encodeURIComponent(principalId)}`);
-    const data = await resp.json();
-
-    if (data.error) {
-      console.error("Error loading sheets:", data.error);
-      return;
-    }
-
-    state.sheets = data.sheets || {};
-    // Update selection options based on new data
-    updateSheetSelectOptions();
-    render();
-    
-  } catch (err) {
-    console.error("Failed to load sheets from API:", err);
-  }
-}
-
-async function saveSheetsToAPI() {
-  try {
-    if (state.currentUser?.role !== 'principal') return;
-
-    const resp = await fetch(`${API_BASE_URL}/api/sheets`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sheets: state.sheets, principalId: state.currentUser.id }),
-    });
-
-    if (!resp.ok) {
-      console.error("Failed to save sheets:", resp.status);
-    }
-  } catch (err) {
-    console.error("Failed to save sheets to API:", err);
-  }
-}
-
 function loadSheets() {
   try {
     const raw = localStorage.getItem("attendance_sheets");
@@ -379,7 +269,6 @@ function saveSheets() {
   } catch (e) {
     console.warn("Could not save sheets to local storage (likely quota exceeded)");
   }
-  saveSheetsToAPI();
 }
 
 function loadSession() {
@@ -471,7 +360,7 @@ function renderPendingPrincipals() {
       p.approvedAt = Date.now();
       p.expiresDays = Number(durationSelect.value);
       savePrincipals();
-      // render() is called by savePrincipals -> savePrincipalsToAPI -> loadPrincipalsFromAPI
+      render();
       alert(`${p.name} has been approved for ${p.expiresDays} days.`);
     });
 
@@ -484,7 +373,7 @@ function renderPendingPrincipals() {
       if (!confirm(`Reject access request from '${p.name}'?`)) return;
       state.principals = state.principals.filter((x) => x.id !== p.id);
       savePrincipals();
-      // render() is called by savePrincipals
+      render();
       alert(`${p.name}'s request has been rejected.`);
     });
 
@@ -500,7 +389,7 @@ function handleAdminLogin() {
   const password = elements.adminPassword.value.trim();
   // For simplicity, this is a hard-coded admin password. Update as needed.
   if (password !== "Umar@8627") {
-    setStatus("Invalid admin password.", 'error');
+    alert("Invalid admin password.");
     return;
   }
 
@@ -515,7 +404,7 @@ function handlePrincipalLogin() {
   const principal = state.principals.find((p) => p.id === principalId);
 
   if (!principal) {
-    setStatus("Please select a principal.", 'error');
+    alert("Please select a principal.");
     return;
   }
 
@@ -523,13 +412,13 @@ function handlePrincipalLogin() {
   if (isPrincipalExpired(principal)) {
     principal.approved = false;
     savePrincipals();
-    setStatus("This principal's access has expired. Please request approval again.", 'error');
+    alert("This principal's access has expired. Please request approval again.");
     render();
     return;
   }
 
   if (!principal.approved) {
-    setStatus("This principal is not yet approved.", 'error');
+    alert("This principal is not yet approved.");
     return;
   }
   if (principal.password !== password) {
@@ -539,7 +428,6 @@ function handlePrincipalLogin() {
 
   state.currentUser = { role: "principal", id: principal.id, name: principal.name, school: principal.school };
   saveSession();
-  loadSheetsFromAPI(); // Load this principal's sheets
   render();
 }
 
@@ -552,52 +440,28 @@ function handlePrincipalSignup() {
   const school = elements.principalSignupSchool.value.trim();
 
   if (!name || !phone || !email || !password || !school) {
-    setStatus("Please fill all fields to sign up.", 'error');
+    alert("Please fill in name, phone, email, password, and school name.");
     return;
   }
 
   const existing = state.principals.find((p) => p.name === name || p.email === email);
   if (existing) {
-    setStatus("A request with this name or email already exists.", 'error');
+    alert("A request with this name or email already exists.");
     return;
   }
  elements.principalSignupSchool.value = "";
   const id = `p_${Date.now()}`;
   state.principals.push({ id, name, phone, email, password, school, approved: false });
   savePrincipals();
+  savePrincipalsToAPI();
   elements.principalSignupName.value = "";
   elements.principalSignupPhone.value = "";
   elements.principalSignupEmail.value = "";
   elements.principalSignupPassword.value = "";
   elements.principalSignupSchool.value = "";
 
-  setStatus("Request submitted. Please wait for admin approval.", 'success');
+  alert("Request submitted. Please wait for admin approval.");
   renderPrincipalLoginOptions();
-}
-
-function handleTeacherLogin() {
-  const phone = elements.teacherLoginPhone.value.trim();
-  const password = elements.teacherLoginPassword.value.trim();
-  const normalizedPhone = normalizePhone(phone);
-
-  if (!normalizedPhone) {
-    setStatus("Please enter a valid phone number.", 'error');
-    return;
-  }
-
-  // Find teacher in the loaded list
-  const teacher = state.teachers.find(t => normalizePhone(t.phone) === normalizedPhone && t.password === password);
-
-  if (!teacher) {
-    setStatus("Invalid phone number or password.", 'error');
-    return;
-  }
-
-  state.currentUser = { role: "teacher", name: teacher.name, classes: teacher.classes };
-  state.activeTeacher = teacher;
-  saveSession();
-  loadSheetsFromAPI(); // Load sheets for this teacher's principal
-  render();
 }
 
 function renderTeacherList() {
@@ -618,17 +482,14 @@ function renderTeacherList() {
   table.style.borderCollapse = "collapse";
 
   const thead = document.createElement("thead");
-  thead.className = "bg-indigo-600 text-white";
   thead.innerHTML =
-    '<tr><th class="px-4 py-3 text-left text-xs font-bold uppercase">Name</th><th class="px-4 py-3 text-left text-xs font-bold uppercase">Phone</th><th class="px-4 py-3 text-left text-xs font-bold uppercase">Classes</th><th class="px-4 py-3 text-left text-xs font-bold uppercase">Actions</th></tr>';
+    "<tr><th>Name</th><th>Phone</th><th>Classes</th><th>Actions</th></tr>";
   table.appendChild(thead);
 
   const tbody = document.createElement("tbody");
-  tbody.className = "divide-y divide-gray-200";
-  
+
   state.teachers.forEach((t) => {
     const tr = document.createElement("tr");
-    tr.className = "odd:bg-white even:bg-gray-50 hover:bg-indigo-50 transition-colors";
 
     const nameTd = document.createElement("td");
     nameTd.textContent = t.name;
@@ -643,23 +504,22 @@ function renderTeacherList() {
     tr.appendChild(classesTd);
 
     const actionsTd = document.createElement("td");
-    actionsTd.className = "px-4 py-2 whitespace-nowrap space-x-2";
 
     const editBtn = document.createElement("button");
     editBtn.type = "button";
     editBtn.textContent = "Edit";
-    editBtn.className = "bg-blue-100 text-blue-700 px-3 py-1 rounded-md hover:bg-blue-200 text-xs font-medium transition";
+    editBtn.className = "small";
     editBtn.addEventListener("click", () => {
       document.getElementById("teacher-name").value = t.name;
       document.getElementById("teacher-phone").value = t.phone;
       document.getElementById("teacher-classes").value = t.classes;
-      document.getElementById("teacher-password").value = t.password || "";
     });
 
     const deleteBtn = document.createElement("button");
     deleteBtn.type = "button";
     deleteBtn.textContent = "Delete";
-    deleteBtn.className = "bg-red-100 text-red-700 px-3 py-1 rounded-md hover:bg-red-200 text-xs font-medium transition";
+    deleteBtn.className = "small";
+    deleteBtn.style.marginLeft = "8px";
     deleteBtn.addEventListener("click", () => {
       if (!confirm(`Delete teacher '${t.name}'?`)) return;
       state.teachers = state.teachers.filter((x) => x.name !== t.name);
@@ -706,7 +566,7 @@ async function loadSheetsFromGoogleSheet(rawUrl) {
 
   try {
     setStatus("Loading Google Sheet...");
-    const resp = await fetch(`${API_BASE_URL}/api/google-sheet?sheetId=${encodeURIComponent(sheetId)}`, { cache: "no-store" });
+    const resp = await fetch(`${API_BASE_URL}/api/google-sheet?sheetId=${encodeURIComponent(sheetId)}`);
     const data = await resp.json();
     if (data.error) throw new Error(data.error);
     setSheets(data.sheets);
@@ -792,30 +652,24 @@ function buildStudentsTable() {
     const phone = normalizePhone(rawPhone);
 
     const tr = document.createElement("tr");
-    tr.className = "odd:bg-white even:bg-gray-50 hover:bg-blue-50 transition-colors";
 
     const rollTd = document.createElement("td");
-    rollTd.className = "text-center py-3 border-b border-gray-100";
     rollTd.textContent = roll;
     tr.appendChild(rollTd);
 
     const nameTd = document.createElement("td");
-    nameTd.className = "text-center py-3 border-b border-gray-100";
     nameTd.textContent = name;
     tr.appendChild(nameTd);
 
     const fatherTd = document.createElement("td");
-    fatherTd.className = "text-center py-3 border-b border-gray-100";
     fatherTd.textContent = father;
     tr.appendChild(fatherTd);
 
     const phoneTd = document.createElement("td");
-    phoneTd.className = "text-center py-3 border-b border-gray-100";
     phoneTd.textContent = phone || "(invalid)";
     tr.appendChild(phoneTd);
 
     const statusTd = document.createElement("td");
-    statusTd.className = "text-center py-3 border-b border-gray-100";
     const statusSelect = document.createElement("select");
     statusSelect.dataset.studentIndex = index;
 
@@ -836,15 +690,11 @@ function buildStudentsTable() {
     tr.appendChild(statusTd);
 
     const actionTd = document.createElement("td");
-    actionTd.className = "text-center py-3 border-b border-gray-100";
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "small";
     btn.textContent = "Send WhatsApp";
     btn.disabled = true;
-    btn.className = "p-2 rounded-full text-white bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors";
-    btn.title = "Send WhatsApp";
-    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.05 4.94A10 10 0 0 0 12 2C6.48 2 2 6.48 2 12c0 1.6.38 3.12 1.05 4.5L2 22l5.5-1.05c1.38.67 2.9 1.05 4.5 1.05h.01c5.52 0 10-4.48 10-10 0-2.76-1.12-5.26-2.95-7.06zM12 20.01c-1.42 0-2.78-.38-3.96-1.04l-.28-.17-2.96.56.57-2.9-.19-.29c-.73-1.13-1.11-2.48-1.11-3.88 0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8zm4.47-6.61c-.14-.07-1.06-.52-1.22-.58-.17-.06-.29-.09-.42.09-.12.18-.46.58-.57.7-.1.12-.2.13-.37.04-.17-.09-1-0.37-1.9-1.17-.71-.63-1.18-1.41-1.3-1.65-.12-.24-.01-.37.06-.49.07-.1.15-.25.22-.34.07-.09.1-.15.15-.25.05-.1.02-.18-.02-.26-.05-.09-1.22-2.92-1.67-3.99-.44-1.05-.88-.9-.98-.91-.1-.01-.22-.01-.34-.01s-.32.04-.49.22c-.17.18-.65.62-.65 1.51s.67 1.75.76 1.87c.09.12 1.25 1.9 3.03 2.65.43.18.76.29 1.03.37.48.15.91.13 1.25.08.38-.06 1.06-.43 1.21-.85.15-.42.15-.78.1-.85-.05-.07-.17-.12-.34-.19z"/></svg>`;
     btn.disabled = row._status !== "absent";
     btn.addEventListener("click", () => {
       const template = elements.messageTemplate.value || DEFAULT_TEMPLATE;
@@ -881,7 +731,6 @@ function render() {
 
   // Authentication flow
   const signedIn = Boolean(user);
-  elements.logout.classList.toggle("hidden", !signedIn);
   elements.authSection.classList.toggle("hidden", signedIn);
   elements.appSection.classList.toggle("hidden", !signedIn);
   if (!signedIn) {
@@ -898,11 +747,6 @@ function render() {
 
   elements.adminPanel.classList.toggle("hidden", !isAdmin);
   elements.principalDashboard.classList.toggle("hidden", isAdmin);
-
-  // If logged in as teacher, set activeTeacher to self so sheet filtering works
-  if (isTeacher && user.name) {
-    state.activeTeacher = state.teachers.find(t => t.name === user.name) || state.activeTeacher;
-  }
 
   // Teacher UI
   elements.teacherSelectRow.classList.toggle("hidden", !isTeacher);
@@ -959,6 +803,12 @@ function render() {
 }
 
 function loadSheetsFromExcel(file) {
+  // Safety Check: Ensure the user updated the API URL
+  if (API_BASE_URL.includes("YOUR_USERNAME") && !window.location.hostname.includes("localhost")) {
+    alert("CONFIGURATION ERROR: You need to open public/app.js and replace 'YOUR_USERNAME' with your actual Cloudflare name.");
+    return;
+  }
+
   const form = new FormData();
   form.append("file", file);
 
@@ -1109,29 +959,6 @@ function init() {
     });
   });
 
-  // Add keydown listeners for login fields
-  elements.adminPassword.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAdminLogin();
-    }
-  });
-  elements.principalLoginPassword.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handlePrincipalLogin();
-    }
-  });
-  elements.teacherLoginPassword.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleTeacherLogin();
-    }
-  });
-
-  // Set default auth tab
-  document.querySelector('.auth-tab[data-tab="principal"]').click();
-
   elements.sheetSelect.addEventListener("change", (event) => {
     state.activeSheet = event.target.value;
     buildStudentsTable();
@@ -1159,22 +986,18 @@ function init() {
     const name = document.getElementById("teacher-name").value.trim();
     const phone = document.getElementById("teacher-phone").value.trim();
     const classes = document.getElementById("teacher-classes").value.trim();
-    const password = document.getElementById("teacher-password").value.trim();
 
-    if (!name || !phone || !classes || !password) {
-      setStatus("Please provide teacher name, phone, password, and class list.", 'error');
+    if (!name || !phone || !classes) {
+      alert("Please provide teacher name, phone, and class list.");
       return;
     }
 
     const existing = state.teachers.find((t) => t.name === name);
     if (existing) {
       existing.phone = phone;
-      existing.password = password;
       existing.classes = classes;
-      // preserve existing principalId
     } else {
-      // Link this teacher to the current principal
-      state.teachers.push({ name, phone, classes, password, principalId: state.currentUser.id });
+      state.teachers.push({ name, phone, classes });
     }
 
     saveTeachers();
@@ -1182,7 +1005,6 @@ function init() {
 
     document.getElementById("teacher-name").value = "";
     document.getElementById("teacher-phone").value = "";
-    document.getElementById("teacher-password").value = "";
     document.getElementById("teacher-classes").value = "";
   });
 
@@ -1193,7 +1015,7 @@ function init() {
   elements.copyTemplate.addEventListener("click", () => {
     elements.messageTemplate.select();
     document.execCommand("copy");
-    setStatus("Template copied to clipboard.", 'success');
+    alert("Template copied to clipboard.");
   });
 
   elements.adminLogin.addEventListener("click", () => {
@@ -1208,10 +1030,6 @@ function init() {
     handlePrincipalSignup();
   });
 
-  elements.teacherLogin.addEventListener("click", () => {
-    handleTeacherLogin();
-  });
-
   elements.logout.addEventListener("click", () => {
     clearSession();
     render();
@@ -1219,6 +1037,13 @@ function init() {
 
   loadTeachers();
   loadPrincipals();
+  loadSession();
+
+  // Restore activeTeacher if logged in as teacher to ensure sheets load correctly
+  if (state.currentUser?.role === 'teacher') {
+    state.activeTeacher = state.teachers.find(t => t.name === state.currentUser.name);
+  }
+
   loadPrincipalsFromAPI();
   loadTeachersFromAPI();
   loadSheets();
