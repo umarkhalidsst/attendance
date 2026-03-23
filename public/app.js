@@ -482,8 +482,9 @@ function renderTeacherList() {
   table.style.borderCollapse = "collapse";
 
   const thead = document.createElement("thead");
+  thead.className = "bg-indigo-600 text-white";
   thead.innerHTML =
-    "<tr><th>Name</th><th>Phone</th><th>Classes</th><th>Actions</th></tr>";
+    '<tr><th class="px-4 py-3 text-left text-xs font-bold uppercase">Name</th><th class="px-4 py-3 text-left text-xs font-bold uppercase">Phone</th><th class="px-4 py-3 text-left text-xs font-bold uppercase">Classes</th><th class="px-4 py-3 text-left text-xs font-bold uppercase">Actions</th></tr>';
   table.appendChild(thead);
 
   const tbody = document.createElement("tbody");
@@ -690,6 +691,7 @@ function buildStudentsTable() {
     tr.appendChild(statusTd);
 
     const actionTd = document.createElement("td");
+    actionTd.className = "text-center py-3 border-b border-gray-100";
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "small";
