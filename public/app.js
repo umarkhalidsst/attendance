@@ -1,6 +1,6 @@
 // Cloudflare Worker URL (The backend API)
 let API_BASE_URL = "";
-console.log("App Version: 2.2 - Teacher UI & Mobile Fixes");
+console.log("App Version: 2.3 - Fix Principal Approval Persistence");
 
 const state = {
   sheets: {},
@@ -263,6 +263,7 @@ function loadPrincipals() {
 
 function savePrincipals() {
   localStorage.setItem("attendance_principals", JSON.stringify(state.principals));
+  savePrincipalsToAPI();
 }
 
 async function loadPrincipalsFromAPI() {
@@ -540,7 +541,6 @@ function handlePrincipalSignup() {
   const id = `p_${Date.now()}`;
   state.principals.push({ id, name, phone, email, password, school, approved: false, approvedAt: null, expiresDays: 0 });
   savePrincipals();
-  savePrincipalsToAPI();
   elements.principalSignupName.value = "";
   elements.principalSignupPhone.value = "";
   elements.principalSignupEmail.value = "";
