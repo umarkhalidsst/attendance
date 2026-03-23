@@ -1,6 +1,6 @@
 // Cloudflare Worker URL (The backend API)
 let API_BASE_URL = "";
-console.log("App Version: 2.1 - Manual Approval & PWA");
+console.log("App Version: 2.2 - Teacher UI & Mobile Fixes");
 
 const state = {
   sheets: {},
@@ -51,6 +51,7 @@ const elements = {
   sendClassMessage: document.getElementById("send-class-message"),
   messageArea: document.getElementById("message-area"),
   messageTemplate: document.getElementById("message-template"),
+  templateSection: document.getElementById("template-section"),
   copyTemplate: document.getElementById("copy-template"),
   links: document.getElementById("links"),
 };
@@ -768,22 +769,27 @@ function buildStudentsTable() {
     tr.className = "text-center";
 
     const rollTd = document.createElement("td");
+    rollTd.className = "px-2 py-3 whitespace-nowrap";
     rollTd.textContent = roll;
     tr.appendChild(rollTd);
 
     const nameTd = document.createElement("td");
+    nameTd.className = "px-2 py-3 whitespace-nowrap";
     nameTd.textContent = name;
     tr.appendChild(nameTd);
 
     const fatherTd = document.createElement("td");
+    fatherTd.className = "px-2 py-3 whitespace-nowrap";
     fatherTd.textContent = father;
     tr.appendChild(fatherTd);
 
     const phoneTd = document.createElement("td");
+    phoneTd.className = "px-2 py-3 whitespace-nowrap";
     phoneTd.textContent = phone || "(invalid)";
     tr.appendChild(phoneTd);
 
     const statusTd = document.createElement("td");
+    statusTd.className = "px-2 py-3 whitespace-nowrap";
     const statusSelect = document.createElement("select");
     statusSelect.dataset.studentIndex = index;
 
@@ -804,6 +810,7 @@ function buildStudentsTable() {
     tr.appendChild(statusTd);
 
     const actionTd = document.createElement("td");
+    actionTd.className = "px-2 py-3 whitespace-nowrap";
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "p-2 rounded-full text-white bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors";
@@ -868,6 +875,11 @@ function render() {
 
   elements.adminPanel.classList.toggle("hidden", !isAdmin);
   elements.principalDashboard.classList.toggle("hidden", isAdmin);
+
+  // Hide/Show template section: Only Principal can see/edit the template
+  if (elements.templateSection) {
+    elements.templateSection.classList.toggle("hidden", !isPrincipal);
+  }
 
   // Teacher UI
   elements.teacherSelectRow.classList.toggle("hidden", !isTeacher);

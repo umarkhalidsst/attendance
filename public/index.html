@@ -153,16 +153,16 @@
                     </div>
                 </div>
 
-                <div class="overflow-hidden border border-gray-200 rounded-xl mb-6 shadow-sm">
+                <div class="overflow-x-auto border border-gray-200 rounded-xl mb-6 shadow-sm">
                     <table id="students-table" class="min-w-full">
                         <thead class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
                             <tr>
-                                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider">Roll</th>
-                                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider">Name</th>
-                                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider">Father</th>
-                                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider">Phone</th>
-                                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider">Action</th>
+                                <th class="px-2 md:px-6 py-4 text-center text-xs font-bold uppercase tracking-wider whitespace-nowrap">Roll</th>
+                                <th class="px-2 md:px-6 py-4 text-center text-xs font-bold uppercase tracking-wider whitespace-nowrap">Name</th>
+                                <th class="px-2 md:px-6 py-4 text-center text-xs font-bold uppercase tracking-wider whitespace-nowrap">Father</th>
+                                <th class="px-2 md:px-6 py-4 text-center text-xs font-bold uppercase tracking-wider whitespace-nowrap">Phone</th>
+                                <th class="px-2 md:px-6 py-4 text-center text-xs font-bold uppercase tracking-wider whitespace-nowrap">Status</th>
+                                <th class="px-2 md:px-6 py-4 text-center text-xs font-bold uppercase tracking-wider whitespace-nowrap">Action</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 text-sm"></tbody>
@@ -172,11 +172,13 @@
                 <!-- Message Section -->
                 <div class="border-t pt-6">
                     <h3 class="text-lg font-bold mb-2">WhatsApp Alerts</h3>
-                    <div class="mb-2 flex justify-between items-center">
-                         <label class="text-sm text-gray-600">Message Template:</label>
-                         <button id="copy-template" class="text-xs text-blue-600 hover:underline">Copy Template</button>
+                    <div id="template-section">
+                        <div class="mb-2 flex justify-between items-center">
+                            <label class="text-sm text-gray-600">Message Template:</label>
+                            <button id="copy-template" class="text-xs text-blue-600 hover:underline">Copy Template</button>
+                        </div>
+                        <textarea id="message-template" rows="4" class="w-full border p-2 rounded-md mb-2 text-sm font-mono bg-gray-50 transition"></textarea>
                     </div>
-                    <textarea id="message-template" rows="4" class="w-full border p-2 rounded-md mb-2 text-sm font-mono bg-gray-50 transition"></textarea>
                     <button id="send-class-message" class="bg-green-600 text-white px-6 py-2 rounded-md font-medium hover:bg-green-700 transition">Generate WhatsApp Links for Absent Students</button>
                     
                     <div id="message-area" class="hidden mt-4 p-4 bg-green-50 rounded border border-green-200">
