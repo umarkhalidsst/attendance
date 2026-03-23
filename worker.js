@@ -160,6 +160,10 @@ app.get('/api/google-sheet-worksheets', async (c) => {
 });
 
 // Serve static assets (Frontend)
-app.get('/*', serveStatic({ root: './', manifest }));
+app.get('/*', serveStatic({ 
+  root: './', 
+  manifest,
+  rewriteRequestPath: (path) => path === '/' ? '/index.html' : path 
+}));
 
 export default app;
