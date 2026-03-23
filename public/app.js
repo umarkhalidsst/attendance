@@ -1,10 +1,5 @@
-// Cloudflare Worker URL (The backend API)
-let API_BASE_URL = "https://ams-attendance.umarkhalidsst.workers.dev";
-
-// Automatically use local server when running locally (npm start) or via IP
-if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-  API_BASE_URL = "";
-}
+// API URL is empty because Frontend and Backend are now on the same domain
+let API_BASE_URL = "";
 
 const state = {
   sheets: {},
@@ -800,31 +795,26 @@ function buildStudentsTable() {
     tr.className = "odd:bg-white even:bg-gray-50 hover:bg-blue-50 transition-colors";
 
     const rollTd = document.createElement("td");
-    rollTd.className = "text-center py-3";
     rollTd.className = "text-center py-3 border-b border-gray-100";
     rollTd.textContent = roll;
     tr.appendChild(rollTd);
 
     const nameTd = document.createElement("td");
-    nameTd.className = "text-center py-3";
     nameTd.className = "text-center py-3 border-b border-gray-100";
     nameTd.textContent = name;
     tr.appendChild(nameTd);
 
     const fatherTd = document.createElement("td");
-    fatherTd.className = "text-center py-3";
     fatherTd.className = "text-center py-3 border-b border-gray-100";
     fatherTd.textContent = father;
     tr.appendChild(fatherTd);
 
     const phoneTd = document.createElement("td");
-    phoneTd.className = "text-center py-3";
     phoneTd.className = "text-center py-3 border-b border-gray-100";
     phoneTd.textContent = phone || "(invalid)";
     tr.appendChild(phoneTd);
 
     const statusTd = document.createElement("td");
-    statusTd.className = "text-center py-3";
     statusTd.className = "text-center py-3 border-b border-gray-100";
     const statusSelect = document.createElement("select");
     statusSelect.dataset.studentIndex = index;
@@ -846,7 +836,6 @@ function buildStudentsTable() {
     tr.appendChild(statusTd);
 
     const actionTd = document.createElement("td");
-    actionTd.className = "text-center py-3";
     actionTd.className = "text-center py-3 border-b border-gray-100";
     const btn = document.createElement("button");
     btn.type = "button";
@@ -970,12 +959,6 @@ function render() {
 }
 
 function loadSheetsFromExcel(file) {
-  // Safety Check: Ensure the user updated the API URL
-  if (API_BASE_URL.includes("YOUR_USERNAME") && !window.location.hostname.includes("localhost")) {
-    alert("CONFIGURATION ERROR: You need to open public/app.js and replace 'YOUR_USERNAME' with your actual Cloudflare name.");
-    return;
-  }
-
   const form = new FormData();
   form.append("file", file);
 
