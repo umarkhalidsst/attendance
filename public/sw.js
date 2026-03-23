@@ -1,12 +1,8 @@
-const CACHE_NAME = "attendance-pwa-v4";
+const CACHE_NAME = "attendance-pwa-v5";
 const ASSETS = [
   "./",
   "./index.html",
   "./app.js",
-  "./manifest.json",
-  "https://cdn.tailwindcss.com",
-  "https://cdn-icons-png.flaticon.com/512/3589/3589030.png"
-];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

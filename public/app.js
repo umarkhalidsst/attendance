@@ -1,6 +1,6 @@
 // Cloudflare Worker URL (The backend API)
 let API_BASE_URL = "";
-console.log("App Version: 2.3 - Fix Principal Approval Persistence");
+console.log("App Version: 2.4 - Mobile Card View");
 
 const state = {
   sheets: {},
@@ -769,26 +769,31 @@ function buildStudentsTable() {
     tr.className = "text-center";
 
     const rollTd = document.createElement("td");
+    rollTd.setAttribute("data-label", "Roll");
     rollTd.className = "px-2 py-3 whitespace-nowrap";
     rollTd.textContent = roll;
     tr.appendChild(rollTd);
 
     const nameTd = document.createElement("td");
+    nameTd.setAttribute("data-label", "Name");
     nameTd.className = "px-2 py-3 whitespace-nowrap";
     nameTd.textContent = name;
     tr.appendChild(nameTd);
 
     const fatherTd = document.createElement("td");
+    fatherTd.setAttribute("data-label", "Father");
     fatherTd.className = "px-2 py-3 whitespace-nowrap";
     fatherTd.textContent = father;
     tr.appendChild(fatherTd);
 
     const phoneTd = document.createElement("td");
+    phoneTd.setAttribute("data-label", "Phone");
     phoneTd.className = "px-2 py-3 whitespace-nowrap";
     phoneTd.textContent = phone || "(invalid)";
     tr.appendChild(phoneTd);
 
     const statusTd = document.createElement("td");
+    statusTd.setAttribute("data-label", "Status");
     statusTd.className = "px-2 py-3 whitespace-nowrap";
     const statusSelect = document.createElement("select");
     statusSelect.dataset.studentIndex = index;
@@ -810,6 +815,7 @@ function buildStudentsTable() {
     tr.appendChild(statusTd);
 
     const actionTd = document.createElement("td");
+    actionTd.setAttribute("data-label", "Action");
     actionTd.className = "px-2 py-3 whitespace-nowrap";
     const btn = document.createElement("button");
     btn.type = "button";

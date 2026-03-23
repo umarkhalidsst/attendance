@@ -38,6 +38,42 @@
             right: 1.5rem;
             z-index: 50;
         }
+
+        /* Mobile Responsive Card View for Students Table */
+        @media (max-width: 768px) {
+            #students-table, #students-table thead, #students-table tbody, #students-table th, #students-table td, #students-table tr { 
+                display: block; 
+            }
+            #students-table thead tr { 
+                position: absolute; top: -9999px; left: -9999px; 
+            }
+            #students-table tr { 
+                margin-bottom: 1rem; 
+                border: 1px solid #e5e7eb; 
+                border-radius: 0.75rem; 
+                box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); 
+                background: white; 
+                overflow: hidden;
+            }
+            #students-table td { 
+                border: none;
+                border-bottom: 1px solid #f3f4f6; 
+                position: relative;
+                padding-left: 40% !important; 
+                text-align: right !important;
+                white-space: normal !important;
+                min-height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+            }
+            #students-table td:before { 
+                position: absolute; top: 50%; transform: translateY(-50%); left: 1rem; width: 35%; 
+                white-space: nowrap; text-align: left; font-weight: 700; color: #4b5563; content: attr(data-label);
+            }
+            #students-table td:last-child { border-bottom: none; justify-content: center; padding-left: 1rem !important; padding-right: 1rem !important; background: #f9fafb; }
+            #students-table td:last-child:before { display: none; }
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center min-h-screen p-4 font-sans text-gray-800">
