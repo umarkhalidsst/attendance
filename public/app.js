@@ -1,6 +1,6 @@
 // Cloudflare Worker URL (The backend API)
 let API_BASE_URL = "";
-console.log("App Version: 2.5 - Mobile Icon & Login Fix");
+console.log("App Version: 2.6 - Fix Principal Re-Approval Bug");
 
 const state = {
   sheets: {},
@@ -382,7 +382,7 @@ function clearSession() {
 
 function isPrincipalExpired(p) {
   if (!p.approved) return false; 
-  // If data is missing, assume not expired to prevent lockout loops
+  // If data is missing, assume NOT expired to prevent accidental lockouts
   if (!p.approvedAt || !p.expiresDays) return false;
 
   const approvedAt = Number(p.approvedAt);
@@ -503,9 +503,7 @@ function handlePrincipalLogin() {
 
   // If the principal's approval period has expired, require re-approval.
   if (isPrincipalExpired(principal)) {
-    principal.approved = false;
-    savePrincipals();
-    alert("This principal's access has expired. Please request approval again.");
+    alert("Your access period has expired. Please contact the Admin to renew your access.");
     render();
     return;
   }
